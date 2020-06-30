@@ -1,0 +1,14 @@
+
+
+https://flask.palletsprojects.com/en/1.1.x/tutorial/#tutorial
+
+build a simple blog with flask
+
+stream at certain spot as needed - particial stream
+https://medium.com/@richard534/uploading-streaming-audio-using-nodejs-express-mongodb-gridfs-b031a0bcb20f
+
+stream audio flask
+
+
+generator python
+https://www.youtube.com/watch?v=bD05uGo_sVI
