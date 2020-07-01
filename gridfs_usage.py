@@ -46,6 +46,9 @@ reference:
 pymongo gridfs example
 https://pymongo.readthedocs.io/en/stable/examples/gridfs.html
 
+gridfs example with python
+https://psabhay.com/posts/mongodb/mongodb-gridfs-using-python/
+
 pymongo gridfs doc
 https://pymongo.readthedocs.io/en/stable/api/gridfs/index.html
 
