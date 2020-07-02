@@ -1,4 +1,6 @@
-from flask import Flask, Response, send_file, stream_with_context, render_template
+from flask import Flask, Response, send_file,\
+                        send_from_directory, stream_with_context, \
+                        render_template
 
 read_byte_range = 1024
 
@@ -12,18 +14,23 @@ server, the server needs to add the following header to the response —
 partial content, specified as a range of bytes. To add this header to 
 responses, one can use the following decoration —
 """
+app.config["music"] = '/home/zhihongli/Desktop/SoundCloud-FullStack/music'
 
 @app.after_request
 def after_request(response):
     response.headers.add('Accept-Ranges', 'bytes')
     return response
 
-@app.route('/music/<name>')
-def return_music(name):
+
+@app.route('/music/<music_name>')
+def return_music(music_name):
     # TODO
     # make sure the music beind quried exists.
     # otherwise, return nothing. or maybe 404 not found
-    return send_file("./music/{0}".format(name))
+
+    # use send_from_directory
+    # return send_file("./music/{0}".format(name))
+    return send_from_directory(app.config['music'], music_name, as_attachment=True)
 
 @app.route('/')
 def hello():
@@ -95,12 +102,22 @@ Audio liveStream with Python & Flask
 https://stackoverflow.com/questions/51079338/audio-livestreaming-with-python-flask
 
 
+HTTP 206(Partial Content) for Flask/Python
+https://blog.asgaard.co.uk/2012/08/03/http-206-partial-content-for-flask-python
+
+Sending files with Flask | Learning Flask - with  flask.send_from_directory function
+customize app.config['directory_name'] then use it
+https://pythonise.com/series/learning-flask/sending-files-with-flask
+
+
 save and retrieve files in a mongodb with flask-python
 https://www.youtube.com/watch?v=DsgAuceHha4
-
 
 Other people's Application:
 Open source, web-based music player for the cloud.
 https://github.com/jakubroztocil/cloudtunes
+
+souncCloud architecture development history
+https://developers.soundcloud.com/blog/evolution-of-soundclouds-architecture
 
 """
