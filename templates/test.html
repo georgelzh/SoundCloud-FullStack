@@ -1,17 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Page Title</title>
+<title>{{name}} - SoundCloud</title>
 </head>
 <body>
-  <h1> hello, {{name}}! </h1>
+  <h1> Welcome, {{name}}! </h1>
+  <h2> My Tracks</h2>
   <audio controls>
-    <!-- <source src="better_now.mp3" type="audio/mpeg"> -->
+    <!-- sadasd -->
     <source src="{{song}}" type="audio/mpeg">
-    <!-- <source src="../better_now.mp3" type="audio/mpeg"> -->
 
     Your browser does not support the audio element.
   </audio> 
 </body>
 </html>
 
+
+<!-- 
+    <source src="{{song}}" type="audio/mpeg"> 
+        // this is for retrieving mp3 from flask.send_file
+        // replace the song here as a mp3 file, it will work
+
+-->
