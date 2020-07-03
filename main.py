@@ -5,7 +5,7 @@
 
 import os
 from flask_pymongo import PyMongo
-from flask import Flask, Response, send_file,\
+from flask import Flask, send_file,request, \
                         send_from_directory, stream_with_context, \
                         render_template, url_for, redirect
 
@@ -43,22 +43,31 @@ def return_music(music_name):
         # return 404 if music not found
         return e, 404
 
-
-@app.route('/<string:username>')
+@app.route('/<string:username>/')
 def show_profile(username):
     user = mongo.db.users.find_one({"name": username})
     if user == None:
         return redirect('/')
-    return render_template("test.html", name = user['name'], song = "none") 
+    return render_template("test.html", username = user['name'], song = "none") 
     # upload music how to render lots of music?
 
 
-@app.route('/<string:username>/upload', methods = ['GET', 'POST'])
-def upload(username):
-    user = mongo.db.users.find_one({"name": username})
-    if user == None:
-        return redirect('/')
-    return render_template("test.html", name = username, song = "")
+@app.route('/upload/<username>', methods = ['GET', 'POST'])
+def upload():
+    if request.method == "GET":
+        # verify user then enable the upload function, otherwise redirect it to home
+        # user = mongo.db.users.find_one({"name": username})
+        # if user == None:
+        #     return redirect('/')
+        return render_template("upload.html")
+
+@app.route('/upload', methods ['POST'])
+def upload_file():
+    # verify user
+    if "music_file" in request.files:
+        music_file = request.files['music_file']
+    return music_file.filename
+        # mongo.save_file()
 
 
 if __name__ == "__main__":
@@ -68,7 +77,10 @@ if __name__ == "__main__":
     # mongo.db.drop_collection("fs.files")
 
     app.run(host="0.0.0.0")
-    print("hello")
+
+
+
+
 
 """
 reference:
