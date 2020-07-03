@@ -52,22 +52,43 @@ def show_profile(username):
     # upload music how to render lots of music?
 
 
-@app.route('/upload/<username>', methods = ['GET', 'POST'])
-def upload():
-    if request.method == "GET":
+@app.route('/upload', methods = ['GET'])
+def load_upload_page():
         # verify user then enable the upload function, otherwise redirect it to home
         # user = mongo.db.users.find_one({"name": username})
         # if user == None:
         #     return redirect('/')
-        return render_template("upload.html")
+    return render_template("upload.html")
 
-@app.route('/upload', methods ['POST'])
+
+@app.route('/upload', methods=['POST'])
 def upload_file():
     # verify user
-    if "music_file" in request.files:
-        music_file = request.files['music_file']
-    return music_file.filename
-        # mongo.save_file()
+    if request.method == "POST":
+        music_file = "failed to upload"
+        if "music_file" in request.files:
+            user = mongo.db.users.find_one({"name": "george"})
+            # dict {'_id': ObjectId('5eff9054e0e083d4b506fde0'), 'name': 'george', 'tracks': {}}
+            if user == None:
+                return "failed to upload, could not find user", 404
+            else:
+                # upload
+                music_file = request.files['music_file']
+                music_file_obj_id = mongo.save_file(filename=music_file.filename, fileobj=music_file, username = "george", user_id = user["_id"])
+                
+                # update user tracks in mongo
+                tracks = user['tracks']
+                tracks[music_file.filename] = music_file_obj_id
+                mongo.db.users.find_one_and_update(
+                    {"name": "george"}, 
+                    {"$set": {
+                        "tracks": tracks
+                    }})
+
+        if music_file == "failed to upload":
+            return music_file, 400
+        else:
+            return music_file.filename
 
 
 if __name__ == "__main__":
