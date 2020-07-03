@@ -12,6 +12,8 @@ server, the server needs to add the following header to the response —
 partial content, specified as a range of bytes. To add this header to 
 responses, one can use the following decoration —
 """
+
+app_dir_path = app.instance_path
 app.config["music"] = os.path.join(app_dir_path, "music")
 
 @app.after_request
@@ -20,15 +22,8 @@ def after_request(response):
     return response
 
 @app.route('/music/<music_name>')
-# last TODO: need to protect this folder make sure there's login needed
 def return_music(music_name):
-    # TODO
-    # return send_file("./music/{0}".format(name))
-    try:
-        return send_from_directory(app.config['music'], music_name, as_attachment=True)
-    except Exception as e:
-        # return 404 if music not found
-        return e, 404
+    return send_file("./music/{0}".format(music_name)) # "./music/better_now.mp3" 
 
 @app.route('/')
 def hello():
@@ -44,7 +39,7 @@ def music_player():
 if __name__ == "__main__":
     # for testing purpose, we gonna drop the table,
 
-    app.run(host="0.0.0.0")
+    app.run(host="0.0.0.0", port=5421)
 
 
 

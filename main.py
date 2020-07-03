@@ -10,10 +10,11 @@ from flask import Flask, send_file,request, \
                         render_template, url_for, redirect
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="music")
 
 # config
 app_dir_path = app.instance_path
+app.config["music"] = os.path.join(app_dir_path, "music")
 mongo = PyMongo(app, uri="mongodb://localhost:27017/soundcloud")
 
 """
@@ -27,7 +28,6 @@ responses, one can use the following decoration —
 def after_request(response):
     response.headers.add('Accept-Ranges', 'bytes')
     return response
-
 
 @app.route('/')
 def hello():
@@ -98,7 +98,6 @@ if __name__ == "__main__":
     # mongo.db.drop_collection("fs.files")
 
     app.run(host="0.0.0.0")
-
 
 
 
