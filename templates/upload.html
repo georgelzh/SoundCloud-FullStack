@@ -4,9 +4,12 @@
 <title>Upload your music - SoundCloud</title>
 </head>
 <body>
-    <p>Click on the "Choose file" button to upload a file:</p>
-
     <form method="POST" action="/upload" enctype="multipart/form-data">
+        <label for="track title">track title</label><br>
+        <input type="text" name="track title" required><br>
+        <label for="username">username</label><br>
+        <input type="text" name="username" required><br>
+        <p>Click on the "Choose file" button to upload a file:</p>
         <input type="file" name="music_file" accept= ".mp3">
       <input type="submit">
     </form>

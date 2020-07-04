@@ -66,29 +66,44 @@ def upload_file():
     # verify user
     if request.method == "POST":
         music_file = "failed to upload"
-        if "music_file" in request.files:
-            user = mongo.db.users.find_one({"name": "george"})
+        if "music_file" and "track title" and "username" in request.files:
+            track_titile = request.form.get("track title")
+            username = request.form.get("username")
+            user_obj = mongo.db.users.find_one({"name": username})
             # dict {'_id': ObjectId('5eff9054e0e083d4b506fde0'), 'name': 'george', 'tracks': {}}
-            if user == None:
+            if user_obj == None:
                 return "failed to upload, could not find user", 404
             else:
                 # upload
                 music_file = request.files['music_file']
-                music_file_obj_id = mongo.save_file(filename=music_file.filename, fileobj=music_file, username = "george", user_id = user["_id"])
+                music_file_obj_id = mongo.save_file(filename=track_titile, 
+                                    fileobj=music_file, username = username, user_id = user_obj["_id"])
                 
                 # update user tracks in mongo
-                tracks = user['tracks']
-                tracks[music_file.filename] = music_file_obj_id
-                mongo.db.users.find_one_and_update(
-                    {"name": "george"}, 
-                    {"$set": {
-                        "tracks": tracks
-                    }})
+                tracks = user_obj['tracks']
+                
+                # this code below solves the problem of user uploading the same music_file
+                # insert the new song into hashtable/"tracks"
+                # if the song name has already exists in the tracks,
+                # then convert it into a list and append the ObjectId to the new list
+                if track_titile in tracks:
+                    tracks[track_titile] = list(tracks[track_titile])
+                    tracks[track_titile].append(music_file_obj_id)
 
+                    # update tracks data in the database
+                    tracks[track_titile] = music_file_obj_id
+                    mongo.db.users.find_one_and_update(
+                        {"name": "george"}, 
+                        {"$set": {
+                            "tracks": tracks
+                        }})
+                else:
+                    tracks[track_titile] = music_file_obj_id
+                    
         if music_file == "failed to upload":
             return music_file, 400
         else:
-            return music_file.filename
+            return "successfully upload track {0} for {1}!".format(track_titile, username)
 
 
 if __name__ == "__main__":
@@ -164,6 +179,16 @@ The Taste of Media Streaming with Flask
 https://codeburst.io/the-taste-of-media-streaming-with-flask-cdce35908a50
 
 
+**************
+hash table and chain----------Ideas for database management:
+
+there can be unique collection that only stores hashtable for song collections. 
+that will increase query speed since it's a harsh table. we don't need to go 
+through the whole database to query a specific song that might be extremly 
+hard to find
+we just doing simple version for now
+https://www.youtube.com/watch?v=shs0KM3wKv8
+***********************
 
 
 

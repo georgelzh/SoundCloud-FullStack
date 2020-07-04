@@ -124,6 +124,19 @@ https://pythonise.com/series/learning-flask/sending-files-with-flask
 *****save and retrieve files in a mongodb with flask-python web app****
 https://www.youtube.com/watch?v=DsgAuceHha4
 
+
+**************
+hash table and chain----------Ideas for database management:
+
+there can be unique collection that only stores hashtable for song collections. 
+that will increase query speed since it's a harsh table. we don't need to go 
+through the whole database to query a specific song that might be extremly 
+hard to find
+we just doing simple version for now
+https://www.youtube.com/watch?v=shs0KM3wKv8
+***********************
+
+
 Other people's Application:
 Open source, web-based music player for the cloud.
 https://github.com/jakubroztocil/cloudtunes
