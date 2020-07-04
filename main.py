@@ -4,28 +4,32 @@
 # Date: July, 2nd, 2020
 
 import os
+from bson import ObjectId
+from gridfs import GridFS, GridFSBucket, NoFile
 from flask_pymongo import PyMongo
-from flask import Flask, send_file,request, \
-                        send_from_directory, stream_with_context, \
-                        render_template, url_for, redirect
-
+from flask import Flask, send_file,request, make_response, \
+                        redirect, stream_with_context, \
+                        render_template, url_for
 
 app = Flask(__name__, static_folder="music")
 
 # config
-app_dir_path = app.instance_path
-app.config["music"] = os.path.join(app_dir_path, "music")
+# app_dir_path = app.instance_path
+# app.config["music"] = os.path.join(app_dir_path, "music")
 mongo = PyMongo(app, uri="mongodb://localhost:27017/soundcloud")
+storage_bucket = GridFSBucket(mongo.db)
+storage = GridFS(mongo.db, "fs")
 
-"""
-In order for clients to know that partial content is supported by the 
-server, the server needs to add the following header to the response —
-"Accept-Ranges": "bytes" This implies that server is capable of serving 
-partial content, specified as a range of bytes. To add this header to 
-responses, one can use the following decoration —
-"""
+
 @app.after_request
 def after_request(response):
+    """
+    In order for clients to know that partial content is supported by the 
+    server, the server needs to add the following header to the response —
+    "Accept-Ranges": "bytes" This implies that server is capable of serving 
+    partial content, specified as a range of bytes. To add this header to 
+    responses, one can use the following decoration —
+    """
     response.headers.add('Accept-Ranges', 'bytes')
     return response
 
@@ -36,9 +40,22 @@ def hello():
 
 @app.route('/music/<music_name>')
 # last TODO: need to protect this folder make sure there's login needed
-def return_music(music_name):
+def return_music(music_name, cache_for=31536000):
     try:
-        return send_from_directory(app.config['music'], music_name, as_attachment=True)
+        audio_file = storage.get({"_id": ObjectId("5eff9c289a17a2b851cb3322")})
+        resp = make_response(audio_file)
+        resp.mimetype="audio/mpeg"
+        resp.content_length = audio_file.length
+        resp.last_modified = audio_file.upload_date
+        resp.set_etag(audio_file.md5)
+        resp.cache_control.max_age = cache_for
+        resp.cache_control.public = True
+        
+
+
+
+        # return "success"
+        return mongo.send_file("better_now.mp3")
     except Exception as e:
         # return 404 if music not found
         return e, 404
@@ -66,13 +83,15 @@ def upload_file():
     # verify user
     if request.method == "POST":
         music_file = "failed to upload"
-        if "music_file" and "track title" and "username" in request.files:
-            track_titile = request.form.get("track title")
-            username = request.form.get("username")
+        track_titile = request.form.get("track title")
+        username = request.form.get("username")
+
+        # print(request.files)    #ImmutableMultiDict([('music_file', <FileStorage: 'better_now.mp3' ('audio/mpeg')>)])
+        if "music_file" in request.files:
             user_obj = mongo.db.users.find_one({"name": username})
             # dict {'_id': ObjectId('5eff9054e0e083d4b506fde0'), 'name': 'george', 'tracks': {}}
             if user_obj == None:
-                return "failed to upload, could not find user", 404
+                return "failed to upload, username is not found", 404
             else:
                 # upload
                 music_file = request.files['music_file']
@@ -99,7 +118,7 @@ def upload_file():
                         }})
                 else:
                     tracks[track_titile] = music_file_obj_id
-                    
+
         if music_file == "failed to upload":
             return music_file, 400
         else:
@@ -190,6 +209,25 @@ we just doing simple version for now
 https://www.youtube.com/watch?v=shs0KM3wKv8
 ***********************
 
+
+//////////////////---------wrap the audio file and customize the http Response
+in terms of returning mp3 from mongodb gridfs to the http request
+1. need to get the file according to the ObjectId(...) from mongodb Gridfs
+2. need to understand http response
+3. wrap a file with http response with the specific content-type audio in this case
+4. return the response that wraps the audio file
+
+object that gridfs returns when we get the file by ObjectId (GridOut object)
+https://api.mongodb.com/python/current/api/gridfs/grid_file.html#gridfs.grid_file.GridOut
+
+for wrap file reference flask-pymongo send_file function
+https://github.com/dcrosta/flask-pymongo/blob/master/flask_pymongo/__init__.py
+
+flask Response Object
+https://flask.palletsprojects.com/en/1.1.x/api/#response-objects
+
+flask make_response() function for customize the response
+https://flask.palletsprojects.com/en/1.1.x/api/#flask.Flask.make_response
 
 
 Other people's Application:
