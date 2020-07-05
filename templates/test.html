@@ -6,17 +6,27 @@
 <body>
   <h1> Welcome, {{username}}! </h1>
   <h2> My Tracks</h2>
-  <audio controls>
-    <source src="{{song}}" type="audio/mpeg">
-    Your browser does not support the audio element.
-  </audio> 
+  <ol>
+    {% for sound_track_title, sound_track_obj_id in sound_track_list %}
+      <li>
+        <p>{{sound_track_title}}</p>
+        <audio controls>
+          <source src="{{sound_track_obj_id}}" type="audio/mpeg">
+        Your browser does not support the audio element.
+        </audio>
+
+      </li>
+    {% endfor%}
+    
+  </ol>
 </body>
 </html>
 
 
 <!-- 
-    <source src="{{song}}" type="audio/mpeg"> 
-        // this is for retrieving mp3 from flask.send_file
-        // replace the song here as a mp3 file, it will work
-
+    foe only one song
+    <audio controls>
+    <source src="{{song}}" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio> 
 -->

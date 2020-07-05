@@ -9,7 +9,8 @@ from gridfs import GridFS, GridFSBucket, NoFile
 from flask_pymongo import PyMongo
 from flask import Flask, send_file,request, make_response, \
                         redirect, stream_with_context, \
-                        render_template, url_for, current_app
+                        render_template, url_for, current_app, \
+                        jsonify
 from werkzeug.wsgi import wrap_file
 
 app = Flask(__name__, static_folder="music")
@@ -20,7 +21,6 @@ app = Flask(__name__, static_folder="music")
 mongo = PyMongo(app, uri="mongodb://localhost:27017/soundcloud")
 storage_bucket = GridFSBucket(mongo.db)
 storage = GridFS(mongo.db, "fs")
-
 
 @app.after_request
 def after_request(response):
@@ -38,20 +38,21 @@ def after_request(response):
 def hello():
     return render_template("index.html")
 
-@app.route('/music/<music_id>')
+@app.route('/music/<music_file_id>')
 # last TODO: need to protect this folder make sure there's login needed
-def return_music(music_id, cache_for=31536000):
+def return_music(music_file_id, cache_for=31536000):
     try:
-        audio_file_obj = storage.get(ObjectId("5eff9c289a17a2b851cb3322"))
+        # audio_file_obj = storage.get(ObjectId("5eff9c289a17a2b851cb3322"))
+        audio_file_obj = storage.get(ObjectId(music_file_id))
         # audio_file_obj = storage.get_version("better_now.mp3") # this also works, but i'd like to send via objectID
-        data = wrap_file(request.environ, audio_file_obj, buffer_size=1024 * 255)
+        data = wrap_file(request.environ, audio_file_obj, buffer_size=1024 * 255) # wrap it for response class set up
         resp = current_app.response_class(data, mimetype=audio_file_obj.content_type , direct_passthrough=True) # flask.Response class
         resp.content_length = audio_file_obj.length
         resp.last_modified = audio_file_obj.upload_date
         resp.set_etag(audio_file_obj.md5)
-        resp.cache_control.max_age = cache_for
+        resp.cache_control.max_age = cache_for  # time the client is able to cache 
         resp.cache_control.public = True
-        resp.make_conditional(request) # what does this sentence do?
+        resp.make_conditional(request) # what does this line do?
         #print(request) # <Request 'http://127.0.0.1:5000/music/sd' [GET]>
         return resp
         # return mongo.send_file("better_now.mp3")
@@ -64,8 +65,32 @@ def show_profile(username):
     user = mongo.db.users.find_one({"name": username})
     if user == None:
         return redirect('/')
-    return render_template("test.html", username = user['name'], song = "none") 
-    # upload music how to render lots of music?
+    else:
+        # retrieve all tracks from the artist
+        sound_track_list = []
+        for track_title, file_ids in user['tracks'].items():
+            # when the user owns exactly one soundtrack for a name
+            if type(file_ids) == ObjectId:
+                sound_track_list.append([track_title, file_ids])
+            # when use owns more than one soundtrack that shares the same track name
+            else:
+                for file_id in file_ids:
+                    sound_track_list.append([track_title, file_id])
+        # display track_list via jinja
+        host = request.host_url
+        print(host)
+        return render_template("test.html", username = user['name'], host=host, sound_track_list = sound_track_list)
+        # return "ok"
+        # upload music how to render lots of music?
+
+
+# for music retrieval via the html jinja 
+# wonder if there is a way to direct the user from the html to my endpoint?
+# if yes, then this endpoint will not be needed
+@app.route('/<string:username>/<string:music_file_obj_id>')
+def redirect_to_music_file(username, music_file_obj_id):
+    # if username != None and music_file_obj_id != None:
+    return redirect("/music/" + music_file_obj_id)
 
 
 @app.route('/upload', methods = ['GET'])
@@ -95,7 +120,7 @@ def upload_file():
                 # upload
                 music_file = request.files['music_file']
                 music_file_obj_id = mongo.save_file(filename=track_titile, 
-                                    fileobj=music_file, username = username, user_id = user_obj["_id"])
+                                    fileobj=music_file, artist = username, user_id = user_obj["_id"])
                 
                 # update user tracks in mongo
                 tracks = user_obj['tracks']
@@ -153,7 +178,7 @@ https://gist.github.com/hosackm/289814198f43976aff9b
 generator python
 https://www.youtube.com/watch?v=bD05uGo_sVI
 
-mimetype
+mimetype - content-type
 https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
 https://www.iana.org/assignments/media-types/media-types.xhtml
 
@@ -237,6 +262,14 @@ https://werkzeug.palletsprojects.com/en/1.0.x/wrappers/
 HTTP conditional requests
 https://developer.mozilla.org/en-US/docs/Web/HTTP/Conditional_requests
 
+Create Custom Responses in Flask
+https://www.youtube.com/watch?v=gh2HPmpFjn8
+
+Build a Python CRUD REST API in Flask and MongoDB Using Flask-PyMongo Library
+https://www.youtube.com/watch?v=HyDACIfdPs0
+
+customize HTTP Response
+https://www.youtube.com/watch?v=gh2HPmpFjn8
 
 
 Other people's Application:
@@ -254,7 +287,7 @@ write music player with flask-python when music is stored statically
 https://blog.csdn.net/qq_41706810/article/details/105824365
 
 html music player
-https://blog.csdn.net/mianbaolixiang/article/details/90515139?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-2.nonecase&depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-2.nonecase
+https://blog.csdn.net/mianbaoli xiang/article/details/90515139?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-2.nonecase&depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-2.nonecase
 
 
 """
