@@ -9,7 +9,8 @@ from gridfs import GridFS, GridFSBucket, NoFile
 from flask_pymongo import PyMongo
 from flask import Flask, send_file,request, make_response, \
                         redirect, stream_with_context, \
-                        render_template, url_for
+                        render_template, url_for, current_app
+from werkzeug.wsgi import wrap_file
 
 app = Flask(__name__, static_folder="music")
 
@@ -37,25 +38,23 @@ def after_request(response):
 def hello():
     return render_template("index.html")
 
-
-@app.route('/music/<music_name>')
+@app.route('/music/<music_id>')
 # last TODO: need to protect this folder make sure there's login needed
-def return_music(music_name, cache_for=31536000):
+def return_music(music_id, cache_for=31536000):
     try:
-        audio_file = storage.get({"_id": ObjectId("5eff9c289a17a2b851cb3322")})
-        resp = make_response(audio_file)
-        resp.mimetype="audio/mpeg"
-        resp.content_length = audio_file.length
-        resp.last_modified = audio_file.upload_date
-        resp.set_etag(audio_file.md5)
+        audio_file_obj = storage.get(ObjectId("5eff9c289a17a2b851cb3322"))
+        # audio_file_obj = storage.get_version("better_now.mp3") # this also works, but i'd like to send via objectID
+        data = wrap_file(request.environ, audio_file_obj, buffer_size=1024 * 255)
+        resp = current_app.response_class(data, mimetype=audio_file_obj.content_type , direct_passthrough=True) # flask.Response class
+        resp.content_length = audio_file_obj.length
+        resp.last_modified = audio_file_obj.upload_date
+        resp.set_etag(audio_file_obj.md5)
         resp.cache_control.max_age = cache_for
         resp.cache_control.public = True
-        
-
-
-
-        # return "success"
-        return mongo.send_file("better_now.mp3")
+        resp.make_conditional(request) # what does this sentence do?
+        #print(request) # <Request 'http://127.0.0.1:5000/music/sd' [GET]>
+        return resp
+        # return mongo.send_file("better_now.mp3")
     except Exception as e:
         # return 404 if music not found
         return e, 404
@@ -228,6 +227,16 @@ https://flask.palletsprojects.com/en/1.1.x/api/#response-objects
 
 flask make_response() function for customize the response
 https://flask.palletsprojects.com/en/1.1.x/api/#flask.Flask.make_response
+
+WSGI Respond quick start doc
+https://werkzeug.palletsprojects.com/en/1.0.x/quickstart/
+
+Request & Respond object doc
+https://werkzeug.palletsprojects.com/en/1.0.x/wrappers/
+
+HTTP conditional requests
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Conditional_requests
+
 
 
 Other people's Application:
