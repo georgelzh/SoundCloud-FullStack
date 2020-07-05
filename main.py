@@ -136,13 +136,18 @@ def upload_file():
                     # update tracks data in the database
                     tracks[track_titile] = music_file_obj_id
                     mongo.db.users.find_one_and_update(
-                        {"name": "george"}, 
+                        {"name": "george"},
                         {"$set": {
                             "tracks": tracks
                         }})
                 else:
                     tracks[track_titile] = music_file_obj_id
-
+                    mongo.db.users.find_one_and_update(
+                        {"name": "george"},
+                        {"$set": {
+                            "tracks": tracks
+                        }})
+                        
         if music_file == "failed to upload":
             return music_file, 400
         else:
@@ -271,6 +276,14 @@ https://www.youtube.com/watch?v=HyDACIfdPs0
 customize HTTP Response
 https://www.youtube.com/watch?v=gh2HPmpFjn8
 
+url_for
+https://www.youtube.com/watch?v=ikGWk8L3aWw
+
+Link to Flask static files with url_for
+https://stackoverflow.com/questions/16351826/link-to-flask-static-files-with-url-for
+
+Create dynamic URLs in Flask with url_for()
+https://stackoverflow.com/questions/7478366/create-dynamic-urls-in-flask-with-url-for
 
 Other people's Application:
 Open source, web-based music player for the cloud.
@@ -291,4 +304,8 @@ https://blog.csdn.net/mianbaoli xiang/article/details/90515139?utm_medium=distri
 
 
 """
+
+
+
+
 
