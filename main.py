@@ -60,6 +60,7 @@ def return_music(music_file_id, cache_for=31536000):
         # return 404 if music not found
         return e, 404
 
+
 @app.route('/<string:username>/')
 def show_profile(username):
     user = mongo.db.users.find_one({"name": username})
@@ -139,7 +140,8 @@ def upload_file():
                         {"name": "george"},
                         {"$set": {
                             "tracks": tracks
-                        }})
+                        }},
+                        upsert = True)
                 else:
                     tracks[track_titile] = music_file_obj_id
                     mongo.db.users.find_one_and_update(
@@ -147,7 +149,7 @@ def upload_file():
                         {"$set": {
                             "tracks": tracks
                         }})
-                        
+
         if music_file == "failed to upload":
             return music_file, 400
         else:
@@ -160,7 +162,7 @@ if __name__ == "__main__":
     # mongo.db.drop_collection("fs.chunks")
     # mongo.db.drop_collection("fs.files")
 
-    app.run(host="0.0.0.0")
+    app.run(host="0.0.0.0", debug=True)
 
 
 
