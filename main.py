@@ -1,26 +1,45 @@
-# python3 
+#!python3 
 # Flask-Python + MongoDB Audio Streaming
 # Author: Zhihong Li(zhihongli@bennington.edu)
 # Date: July, 2nd, 2020
 
-import os
+
+# db
+from flask_pymongo import PyMongo
 from bson import ObjectId
 from gridfs import GridFS, GridFSBucket, NoFile
-from flask_pymongo import PyMongo
+
+# flask
+import os
 from flask import Flask, send_file,request, make_response, \
                         redirect, stream_with_context, \
                         render_template, url_for, current_app, \
                         jsonify
+# registration package
+import functools
+from flask import (
+    Blueprint, flash, g, redirect, render_template, request, session, url_for
+)
+from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.wsgi import wrap_file
 
-app = Flask(__name__, static_folder="music")
+
+app = Flask(__name__)   #static_folder="music"
+
 
 # config
-# app_dir_path = app.instance_path
-# app.config["music"] = os.path.join(app_dir_path, "music")
 mongo = PyMongo(app, uri="mongodb://localhost:27017/soundcloud")
 storage_bucket = GridFSBucket(mongo.db)
 storage = GridFS(mongo.db, "fs")
+
+@app.before_request
+def load_logged_in_user():
+    user_id = session.get('user_id')
+    if user_id is None:
+        g.user = None
+    else:
+        g.user = mongo.db.users.fine_one({"_id": ObjectId(user_id)})
+
 
 @app.after_request
 def after_request(response):
@@ -34,15 +53,61 @@ def after_request(response):
     response.headers.add('Accept-Ranges', 'bytes')
     return response
 
+
 @app.route('/')
-def hello():
+def return_index():
     return render_template("index.html")
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        email = request.form['email']
+        
+        if mongo.db.users.find_one({"username": username}) is not None:
+            error = "username already exists, please change another one."
+            flash(error)
+            return render_template("register.html")
+        else:
+            empty_tracks = {}
+            mongo.db.users.insert_one({"username": username, "password": generate_password_hash(password),\
+                                            "email": email, "tracks": empty_tracks})
+            return redirect('login')
+    elif request.method == "GET":
+        return render_template("register.html")
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']        
+        user = mongo.db.users.find_one({"username": username})
+        if user is None:
+            error = "user does not exists"
+            flash(error)
+            return render_template("login.html")
+        if check_password_hash(user['password'], password) == False:
+            error = "incorrect password, please try again"
+            flash(error)
+            return render_template("login.html")
+        else:
+            session.clear()
+            session['user_id'] = user['_id']
+            return redirect(url_for('/{0}'.format(username)))
+
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('/'))
 
 @app.route('/music/<music_file_id>')
 # last TODO: need to protect this folder make sure there's login needed
 def return_music(music_file_id, cache_for=31536000):
     try:
-        # audio_file_obj = storage.get(ObjectId("5eff9c289a17a2b851cb3322"))
+        # package the response
         audio_file_obj = storage.get(ObjectId(music_file_id))
         # audio_file_obj = storage.get_version("better_now.mp3") # this also works, but i'd like to send via objectID
         data = wrap_file(request.environ, audio_file_obj, buffer_size=1024 * 255) # wrap it for response class set up
@@ -63,7 +128,7 @@ def return_music(music_file_id, cache_for=31536000):
 
 @app.route('/<string:username>/')
 def show_profile(username):
-    user = mongo.db.users.find_one({"name": username})
+    user = mongo.db.users.find_one({"username": username})
     if user == None:
         return redirect('/')
     else:
@@ -80,7 +145,7 @@ def show_profile(username):
         # display track_list via jinja
         host = request.host_url
         print(host)
-        return render_template("test.html", username = user['name'], host=host, sound_track_list = sound_track_list)
+        return render_template("test.html", username = user['username'], host=host, sound_track_list = sound_track_list)
         # return "ok"
         # upload music how to render lots of music?
 
@@ -90,14 +155,14 @@ def show_profile(username):
 # if yes, then this endpoint will not be needed
 @app.route('/<string:username>/<string:music_file_obj_id>')
 def redirect_to_music_file(username, music_file_obj_id):
-    # if username != None and music_file_obj_id != None:
-    return redirect("/music/" + music_file_obj_id)
+    if username != None and music_file_obj_id != None:
+        return redirect("/music/" + music_file_obj_id)
 
 
 @app.route('/upload', methods = ['GET'])
 def load_upload_page():
         # verify user then enable the upload function, otherwise redirect it to home
-        # user = mongo.db.users.find_one({"name": username})
+        # user = mongo.db.users.find_one({"username": username})
         # if user == None:
         #     return redirect('/')
     return render_template("upload.html")
@@ -113,7 +178,7 @@ def upload_file():
 
         # print(request.files)    #ImmutableMultiDict([('music_file', <FileStorage: 'better_now.mp3' ('audio/mpeg')>)])
         if "music_file" in request.files:
-            user_obj = mongo.db.users.find_one({"name": username})
+            user_obj = mongo.db.users.find_one({"username": username})
             # dict {'_id': ObjectId('5eff9054e0e083d4b506fde0'), 'name': 'george', 'tracks': {}}
             if user_obj == None:
                 return "failed to upload, username is not found", 404
@@ -137,7 +202,7 @@ def upload_file():
                     # update tracks data in the database
                     tracks[track_titile] = music_file_obj_id
                     mongo.db.users.find_one_and_update(
-                        {"name": "george"},
+                        {"username": "george"},
                         {"$set": {
                             "tracks": tracks
                         }},
@@ -145,7 +210,7 @@ def upload_file():
                 else:
                     tracks[track_titile] = music_file_obj_id
                     mongo.db.users.find_one_and_update(
-                        {"name": "george"},
+                        {"username": "george"},
                         {"$set": {
                             "tracks": tracks
                         }})
@@ -153,9 +218,29 @@ def upload_file():
         if music_file == "failed to upload":
             return music_file, 400
         else:
-            return "successfully upload track {0} for {1}!".format(track_titile, username)
+            return "successfully upload track '{0}' for {1}!".format(track_titile, username)
+
+"""
+Require Authentication in Other Views¶
+Creating, editing, and deleting blog posts will require a user to be logged in. 
+A decorator can be used to check this for each view it’s applied to.
+
+def login_required(view):
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        if g.user is None:
+            return redirect(url_for('auth.login'))
+
+        return view(**kwargs)
+
+    return wrapped_view
 
 
+This decorator returns a new view function that wraps the original view it’s applied to. 
+The new function checks if a user is loaded and redirects to the login page otherwise. 
+If a user is loaded the original view is called and continues normally. You’ll use this 
+decorator when writing the blog views.
+"""
 if __name__ == "__main__":
     # for testing purpose, we gonna drop all collections before the program starts
     # mongo.db.drop_collection("user")
@@ -286,6 +371,12 @@ https://stackoverflow.com/questions/16351826/link-to-flask-static-files-with-url
 
 Create dynamic URLs in Flask with url_for()
 https://stackoverflow.com/questions/7478366/create-dynamic-urls-in-flask-with-url-for
+
+
+******////////--------create login Blueprints and Views¶
+https://flask.palletsprojects.com/en/1.1.x/tutorial/views/
+
+
 
 Other people's Application:
 Open source, web-based music player for the cloud.
