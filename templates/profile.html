@@ -1,10 +1,16 @@
 {% extends "layout.html" %}
 
+{% block header %}
+  <h1>{% block title %}{{username}} - Vangle{% endblock %}</h1>
 {% block content %}
+  <h1> {{username}}! </h1>
+  <h2> Tracks</h2>
+  {% if g.user %}
+  <a class ='action' href="{{url_for('/upload')}}">Upload New Track</a>
+  {% endif %}
 
-  <h1> Welcome, {{username}}! </h1>
-  <h2> My Tracks</h2>
-  <ol>
+
+  <ul>
     {% for sound_track_title, sound_track_obj_id in sound_track_list %}
       <li>
         <p>{{sound_track_title}}</p>
@@ -12,11 +18,9 @@
           <source src="{{sound_track_obj_id}}" type="audio/mpeg">
               Your browser does not support the audio element.
         </audio>
-
       </li>
     {% endfor%}
-    
-  </ol>
+  </ul>
 
 {% endblock %}
 <!-- 

@@ -23,9 +23,12 @@ from flask import (
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.wsgi import wrap_file
 
+# modules - CRUD mongodb operation for user
+from werkzeug.exceptions import abort
+
 
 app = Flask(__name__)   #static_folder="music"
-
+app.secret_key="dev"
 
 # config
 mongo = PyMongo(app, uri="mongodb://localhost:27017/soundcloud")
@@ -64,9 +67,18 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        confirm_password = request.form['password_confirm']
         email = request.form['email']
         
-        if mongo.db.users.find_one({"username": username}) is not None:
+        if username == None or password == None or confirm_password == None or email == None:
+            error = "Please fill in all the blank required"
+            flash(error)
+            return render_template("register.html")
+        if password != confirm_password:
+            error = "password do not match each other"
+            flash(error)
+            return render_template("register.html")
+        elif mongo.db.users.find_one({"username": username}) is not None:
             error = "username already exists, please change another one."
             flash(error)
             return render_template("register.html")
@@ -74,9 +86,12 @@ def register():
             empty_tracks = {}
             mongo.db.users.insert_one({"username": username, "password": generate_password_hash(password),\
                                             "email": email, "tracks": empty_tracks})
-            return redirect('login')
+            success = "successful register!"
+            flash(success)
+            return render_template("register.html")
     elif request.method == "GET":
         return render_template("register.html")
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -87,21 +102,27 @@ def login():
         if user is None:
             error = "user does not exists"
             flash(error)
-            return render_template("login.html")
+            return render_template("login.html") #, error = error
         if check_password_hash(user['password'], password) == False:
             error = "incorrect password, please try again"
             flash(error)
-            return render_template("login.html")
+            return render_template("login.html", error = error)
         else:
             session.clear()
             session['user_id'] = user['_id']
+            flash("Welcome {0} Back!".format(username))
             return redirect(url_for('/{0}'.format(username)))
+    if request.method == 'GET':
+        return render_template("login.html")
 
 
 @app.route('/logout')
 def logout():
     session.clear()
+    success = "successfully loged out"
+    flash(success)
     return redirect(url_for('/'))
+
 
 @app.route('/music/<music_file_id>')
 # last TODO: need to protect this folder make sure there's login needed
@@ -145,7 +166,7 @@ def show_profile(username):
         # display track_list via jinja
         host = request.host_url
         print(host)
-        return render_template("test.html", username = user['username'], host=host, sound_track_list = sound_track_list)
+        return render_template("profile.html", username = user['username'], host=host, sound_track_list = sound_track_list)
         # return "ok"
         # upload music how to render lots of music?
 
@@ -220,27 +241,26 @@ def upload_file():
         else:
             return "successfully upload track '{0}' for {1}!".format(track_titile, username)
 
-"""
-Require Authentication in Other Views¶
-Creating, editing, and deleting blog posts will require a user to be logged in. 
-A decorator can be used to check this for each view it’s applied to.
-
 def login_required(view):
+    """
+    Require Authentication in Other Views¶
+    Creating, editing, and deleting blog posts will require a user to be logged in. 
+    A decorator can be used to check this for each view it’s applied to.
+
+    This decorator returns a new view function that wraps the original view it’s applied to. 
+    The new function checks if a user is loaded and redirects to the login page otherwise. 
+    If a user is loaded the original view is called and continues normally. You’ll use this 
+    decorator when writing the blog views.
+    """
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if g.user is None:
-            return redirect(url_for('auth.login'))
+            return redirect(url_for('/login'))
 
         return view(**kwargs)
 
     return wrapped_view
 
-
-This decorator returns a new view function that wraps the original view it’s applied to. 
-The new function checks if a user is loaded and redirects to the login page otherwise. 
-If a user is loaded the original view is called and continues normally. You’ll use this 
-decorator when writing the blog views.
-"""
 if __name__ == "__main__":
     # for testing purpose, we gonna drop all collections before the program starts
     # mongo.db.drop_collection("user")

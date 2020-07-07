@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
+{% block header %}{% endblock %}
 <head>
-  <title>Your own music - SoundCloud</title>
+    
+  <title>{% block title %}{% endblock %}</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
@@ -17,10 +19,10 @@
         <li class="nav-item">
             <a class="nav-link" href=".index.html">HOME</a>
         </li>
-        <li><span>{{ g.user['name'] }}</span>
+        <li><span>{{ g.user['username'] }}</span>
         <li><a href="{{ url_for('logout') }}">Log Out</a>
         <li class="nav-item">
-            <a class="nav-link" href="{{url_for('/')g.user['name']}}">Profile</a>
+            <a class="nav-link" href="{{url_for('/')}}g.user['name']">Profile</a>
         </li>
 
         {% else %}
@@ -28,19 +30,28 @@
         <a class="nav-link" href=".index.html">HOME</a>
         </li>
         <li class="nav-item">
-        <a class="nav-link" href="{{login}}">Login</a>
+        <a class="nav-link" href="{{ url_for('login') }}">Login</a>
         </li>
+        {% endif %}
     </ul>
   </nav>
   <br>
-  <div class = "container-fluid top-container" style="margin-top:80px">
-    {% for message in get_flashed_messages() %}
-        <div class="flash">{{ message }}</div>
-    {% endfor %}
 
+  <div class = "container-fluid top-container" style="margin-top:80px">  
       {% block content %}
       {% endblock %}
-  </div>
+      {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class=flashes style="margin-top: 20px;">
+        {% for message in messages %}
+          <li><strong>{{ message }}</strong></li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+      {% endwith %}
+    </div>
+
+
 
 <div class="container-fluid" >
   <footer>
@@ -49,7 +60,6 @@
     <a href="zhihongli@bennington.edu">Email</a>
   </footer>
 </div>
-
 
 </body>
 </html>
