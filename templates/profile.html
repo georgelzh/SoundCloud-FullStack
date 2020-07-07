@@ -2,13 +2,17 @@
 
 {% block header %}
   <h1>{% block title %}{{username}} - Vangle{% endblock %}</h1>
-{% block content %}
-  <h1> {{username}}! </h1>
-  <h2> Tracks</h2>
-  {% if g.user %}
-  <a class ='action' href="{{url_for('/upload')}}">Upload New Track</a>
-  {% endif %}
+{% endblock %}
 
+{% block content %}
+
+  <h1> Welcome back! {{username}} </h1>
+  <h2> Tracks</h2>
+
+  {% if g.user %}
+  <a class ='action' href="{{url_for('upload')}}">Upload</a>
+  <p>test</p>
+  {% endif %}
 
   <ul>
     {% for sound_track_title, sound_track_obj_id in sound_track_list %}
@@ -23,19 +27,3 @@
   </ul>
 
 {% endblock %}
-<!-- 
-    foe only one song
-    <audio controls>
-    <source src="{{song}}" type="audio/mpeg">
-    Your browser does not support the audio element.
-  </audio> 
-
-
-  dynamic link with url_for
-      <li><a href="{{ url_for('auth.logout') }}">Log Out</a>
-    {% else %}
-      <li><a href="{{ url_for('auth.register') }}">Register</a>
-      <li><a href="{{ url_for('auth.login') }}">Log In</a>
- 
-
--->

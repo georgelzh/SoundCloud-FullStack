@@ -37,11 +37,11 @@ storage = GridFS(mongo.db, "fs")
 
 @app.before_request
 def load_logged_in_user():
-    user_id = session.get('user_id')
-    if user_id is None:
+    username = session.get('username')
+    if username is None:
         g.user = None
     else:
-        g.user = mongo.db.users.fine_one({"_id": ObjectId(user_id)})
+        g.user = mongo.db.users.find_one({"username": username})
 
 
 @app.after_request
@@ -58,7 +58,7 @@ def after_request(response):
 
 
 @app.route('/')
-def return_index():
+def show_index():
     return render_template("index.html")
 
 
@@ -109,24 +109,28 @@ def login():
             return render_template("login.html", error = error)
         else:
             session.clear()
-            session['user_id'] = user['_id']
+            session['username'] = user['username']
+            g.user = {"username": session['username']}
             flash("Welcome {0} Back!".format(username))
-            return redirect(url_for('/{0}'.format(username)))
+            return redirect(url_for('show_profile', username = username))
     if request.method == 'GET':
+        if "username" in session:
+            return redirect(url_for('show_profile', username = session['username']))
         return render_template("login.html")
 
 
 @app.route('/logout')
 def logout():
     session.clear()
+    g.user = None
     success = "successfully loged out"
     flash(success)
-    return redirect(url_for('/'))
+    return redirect('/')
 
 
 @app.route('/music/<music_file_id>')
 # last TODO: need to protect this folder make sure there's login needed
-def return_music(music_file_id, cache_for=31536000):
+def fetch_music(music_file_id, cache_for=31536000):
     try:
         # package the response
         audio_file_obj = storage.get(ObjectId(music_file_id))
@@ -147,7 +151,8 @@ def return_music(music_file_id, cache_for=31536000):
         return e, 404
 
 
-@app.route('/<string:username>/')
+@app.route('/profile/<string:username>')
+@app.route('/profile/<string:username>/')
 def show_profile(username):
     user = mongo.db.users.find_one({"username": username})
     if user == None:
@@ -164,9 +169,7 @@ def show_profile(username):
                 for file_id in file_ids:
                     sound_track_list.append([track_title, file_id])
         # display track_list via jinja
-        host = request.host_url
-        print(host)
-        return render_template("profile.html", username = user['username'], host=host, sound_track_list = sound_track_list)
+        return render_template("profile.html", username = user['username'], sound_track_list = sound_track_list)
         # return "ok"
         # upload music how to render lots of music?
 
@@ -180,17 +183,15 @@ def redirect_to_music_file(username, music_file_obj_id):
         return redirect("/music/" + music_file_obj_id)
 
 
-@app.route('/upload', methods = ['GET'])
-def load_upload_page():
+@app.route('/upload', methods = ['GET', 'POST'])
+def upload():
         # verify user then enable the upload function, otherwise redirect it to home
         # user = mongo.db.users.find_one({"username": username})
         # if user == None:
         #     return redirect('/')
-    return render_template("upload.html")
+    if request.method == 'GET':
+        return render_template('upload.html')
 
-
-@app.route('/upload', methods=['POST'])
-def upload_file():
     # verify user
     if request.method == "POST":
         music_file = "failed to upload"
@@ -241,6 +242,7 @@ def upload_file():
         else:
             return "successfully upload track '{0}' for {1}!".format(track_titile, username)
 
+
 def login_required(view):
     """
     Require Authentication in Other Views¶
@@ -256,10 +258,9 @@ def login_required(view):
     def wrapped_view(**kwargs):
         if g.user is None:
             return redirect(url_for('/login'))
-
         return view(**kwargs)
-
     return wrapped_view
+
 
 if __name__ == "__main__":
     # for testing purpose, we gonna drop all collections before the program starts
@@ -396,6 +397,9 @@ https://stackoverflow.com/questions/7478366/create-dynamic-urls-in-flask-with-ur
 ******////////--------create login Blueprints and Views¶
 https://flask.palletsprojects.com/en/1.1.x/tutorial/views/
 
+get request host
+        # host = request.host_url
+        # print(host)
 
 
 Other people's Application:
@@ -416,9 +420,13 @@ html music player
 https://blog.csdn.net/mianbaoli xiang/article/details/90515139?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-2.nonecase&depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-2.nonecase
 
 
+
+
+        {% if g.user['id'] == post['author_id'] %}
+          <a class="action" href="{{ url_for('blog.update', id=post['id']) }}">Edit</a>
+        {% endif %}
+
 """
-
-
 
 
 

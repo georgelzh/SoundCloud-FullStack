@@ -1,21 +1,21 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Upload your music - SoundCloud</title>
-</head>
-<body>
+
+{% extends "layout.html" %}
+
+{% block header %}
+  {% block title %}Upload your music - SoundCloud - Vangle{% endblock %}
+{% endblock %}
+
+
+{% block content %}
     <form method="POST" action="/upload" enctype="multipart/form-data">
-        <label for="track title">track title</label><br>
+        <label for="track title">Track Title</label><br>
         <input type="text" name="track title" required><br>
-        <label for="username">username</label><br>
-        <input type="text" name="username" required><br>
-        <p>Click on the "Choose file" button to upload a file:</p>
+        <p>Click on the "Choose file" button to upload the audio track file:</p>
         <input type="file" name="music_file" accept= ".mp3" required>
       <input type="submit">
     </form>
+{% endblock %}
 
-</body>
-</html>
 
 
 <!-- 
