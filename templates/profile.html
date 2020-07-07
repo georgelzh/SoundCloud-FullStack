@@ -11,10 +11,9 @@
 
   {% if g.user %}
   <a class ='action' href="{{url_for('upload')}}">Upload</a>
-  <p>test</p>
   {% endif %}
 
-  <ul>
+  <ul style="margin-top: 1%;">
     {% for sound_track_title, sound_track_obj_id in sound_track_list %}
       <li>
         <p>{{sound_track_title}}</p>

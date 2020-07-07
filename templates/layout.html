@@ -22,8 +22,10 @@
         <li class="nav-item">
             <a class="nav-link" href="{{url_for('show_profile', username=g.user['username'])}}">Profile</a>
         </li>
-        
         <li class="nav-item">
+          <a class="nav-link" href="{{url_for('upload')}}">Upload</a>
+        </li>        <li class="nav-item">
+
           <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
         </li>
 

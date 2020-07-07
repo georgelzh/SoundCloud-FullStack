@@ -27,8 +27,9 @@ from werkzeug.wsgi import wrap_file
 from werkzeug.exceptions import abort
 
 
-app = Flask(__name__)   #static_folder="music"
+app = Flask(__name__)   #static_folder="music" if needed
 app.secret_key="dev"
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024 # 10 mb maximize size upload file
 
 # config
 mongo = PyMongo(app, uri="mongodb://localhost:27017/soundcloud")
@@ -56,6 +57,23 @@ def after_request(response):
     response.headers.add('Accept-Ranges', 'bytes')
     return response
 
+def login_required(view):
+    """
+    Require Authentication in Other Views¶
+    Creating, editing, and deleting blog posts will require a user to be logged in. 
+    A decorator can be used to check this for each view it’s applied to.
+
+    This decorator returns a new view function that wraps the original view it’s applied to. 
+    The new function checks if a user is loaded and redirects to the login page otherwise. 
+    If a user is loaded the original view is called and continues normally. You’ll use this 
+    decorator when writing the blog views.
+    """
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        if g.user is None:
+            return redirect("/login")
+        return view(**kwargs)
+    return wrapped_view
 
 @app.route('/')
 def show_index():
@@ -110,8 +128,6 @@ def login():
         else:
             session.clear()
             session['username'] = user['username']
-            g.user = {"username": session['username']}
-            flash("Welcome {0} Back!".format(username))
             return redirect(url_for('show_profile', username = username))
     if request.method == 'GET':
         if "username" in session:
@@ -120,9 +136,9 @@ def login():
 
 
 @app.route('/logout')
+@login_required
 def logout():
     session.clear()
-    g.user = None
     success = "successfully loged out"
     flash(success)
     return redirect('/')
@@ -153,6 +169,7 @@ def fetch_music(music_file_id, cache_for=31536000):
 
 @app.route('/profile/<string:username>')
 @app.route('/profile/<string:username>/')
+@login_required
 def show_profile(username):
     user = mongo.db.users.find_one({"username": username})
     if user == None:
@@ -170,96 +187,66 @@ def show_profile(username):
                     sound_track_list.append([track_title, file_id])
         # display track_list via jinja
         return render_template("profile.html", username = user['username'], sound_track_list = sound_track_list)
-        # return "ok"
-        # upload music how to render lots of music?
 
 
 # for music retrieval via the html jinja 
 # wonder if there is a way to direct the user from the html to my endpoint?
 # if yes, then this endpoint will not be needed
-@app.route('/<string:username>/<string:music_file_obj_id>')
+@app.route('/profile/<string:username>/<string:music_file_obj_id>')
 def redirect_to_music_file(username, music_file_obj_id):
     if username != None and music_file_obj_id != None:
         return redirect("/music/" + music_file_obj_id)
 
 
 @app.route('/upload', methods = ['GET', 'POST'])
+@login_required
 def upload():
-        # verify user then enable the upload function, otherwise redirect it to home
-        # user = mongo.db.users.find_one({"username": username})
-        # if user == None:
-        #     return redirect('/')
     if request.method == 'GET':
         return render_template('upload.html')
 
-    # verify user
     if request.method == "POST":
         music_file = "failed to upload"
+
         track_titile = request.form.get("track title")
-        username = request.form.get("username")
-
         # print(request.files)    #ImmutableMultiDict([('music_file', <FileStorage: 'better_now.mp3' ('audio/mpeg')>)])
+        
         if "music_file" in request.files:
-            user_obj = mongo.db.users.find_one({"username": username})
-            # dict {'_id': ObjectId('5eff9054e0e083d4b506fde0'), 'name': 'george', 'tracks': {}}
-            if user_obj == None:
-                return "failed to upload, username is not found", 404
+            # upload
+            music_file = request.files['music_file']            
+            if music_file == "failed to upload" or music_file == None:
+                return music_file, 400
+            
+            music_file_obj_id = mongo.save_file(filename=track_titile, 
+                                fileobj=music_file, artist = g.user['username'], user_id = g.user["_id"])
+            
+            # update user tracks in mongo
+            tracks = g.user['tracks']
+            
+            # this code below solves the problem of user uploading the same music_file
+            # insert the new song into hashtable/"tracks"
+            # if the song name has already exists in the tracks,
+            # then convert it into a list and append the ObjectId to the new list
+            if track_titile in tracks:
+                # put the ObjectId into a [] so that the same name track can be appended here
+                tracks[track_titile] = [tracks[track_titile]]
+                tracks[track_titile].append(music_file_obj_id)
+
+                # update tracks data in the database
+                tracks[track_titile] = music_file_obj_id
+                mongo.db.users.find_one_and_update(
+                    {"_id": g.user['_id']},
+                    {"$set": {
+                        "tracks": tracks
+                    }},
+                    upsert = True)
             else:
-                # upload
-                music_file = request.files['music_file']
-                music_file_obj_id = mongo.save_file(filename=track_titile, 
-                                    fileobj=music_file, artist = username, user_id = user_obj["_id"])
-                
-                # update user tracks in mongo
-                tracks = user_obj['tracks']
-                
-                # this code below solves the problem of user uploading the same music_file
-                # insert the new song into hashtable/"tracks"
-                # if the song name has already exists in the tracks,
-                # then convert it into a list and append the ObjectId to the new list
-                if track_titile in tracks:
-                    tracks[track_titile] = list(tracks[track_titile])
-                    tracks[track_titile].append(music_file_obj_id)
-
-                    # update tracks data in the database
-                    tracks[track_titile] = music_file_obj_id
-                    mongo.db.users.find_one_and_update(
-                        {"username": "george"},
-                        {"$set": {
-                            "tracks": tracks
-                        }},
-                        upsert = True)
-                else:
-                    tracks[track_titile] = music_file_obj_id
-                    mongo.db.users.find_one_and_update(
-                        {"username": "george"},
-                        {"$set": {
-                            "tracks": tracks
-                        }})
-
-        if music_file == "failed to upload":
-            return music_file, 400
-        else:
-            return "successfully upload track '{0}' for {1}!".format(track_titile, username)
-
-
-def login_required(view):
-    """
-    Require Authentication in Other Views¶
-    Creating, editing, and deleting blog posts will require a user to be logged in. 
-    A decorator can be used to check this for each view it’s applied to.
-
-    This decorator returns a new view function that wraps the original view it’s applied to. 
-    The new function checks if a user is loaded and redirects to the login page otherwise. 
-    If a user is loaded the original view is called and continues normally. You’ll use this 
-    decorator when writing the blog views.
-    """
-    @functools.wraps(view)
-    def wrapped_view(**kwargs):
-        if g.user is None:
-            return redirect(url_for('/login'))
-        return view(**kwargs)
-    return wrapped_view
+                tracks[track_titile] = music_file_obj_id
+                mongo.db.users.find_one_and_update(
+                    {"_id": g.user['_id']},
+                    {"$set": {
+                        "tracks": tracks
+                    }})
+        return "successfully upload track '{0}' for {1}!".format(track_titile, g.user['username'])
 
 
 if __name__ == "__main__":
@@ -400,6 +387,10 @@ https://flask.palletsprojects.com/en/1.1.x/tutorial/views/
 get request host
         # host = request.host_url
         # print(host)
+
+g variable vs session
+https://www.reddit.com/r/learnpython/comments/2x4754/flask_should_i_use_the_g_variable_system_of/
+
 
 
 Other people's Application:

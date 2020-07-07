@@ -5,6 +5,14 @@
 {% endblock %}
 
 {% block content %}
+{% if g.user %}
 <h1>Hi Stranger, Welcome to Vangel!</h1>
-<h2>Enjoy the music</h2>
+
+{% else %}
+<h1>Hi Stranger, Welcome to Vangel!</h1>
+{% endif %}
+
+<h3>Enjoy the music!</h3>
+<br>
+<h5>“Where words fail, music speaks.” ― Hans Christian Andersen</h5>
 {% endblock %}
