@@ -58,7 +58,9 @@ flask run --host 0.0.0.0 --port 5000
 4. add comment function
 5. add follow/unfollow function
 6. add search music function at index page
-7. ... and a lot more other features could be built on
+7. make sure all username stored in mongo is lowercase.
+    login and registration is all converted to lowercase too.
+8. ... and a lot more other features could be built on
 
 # reflection
 1. I learnt a lot from this project.
@@ -79,8 +81,7 @@ as I build. It's a better way to learn.
 you can should solve everything lazily(unoptimized). However, if you really can't solve 
 sth in a smart way at first even after trying, you should solve it indirectly(find ways
 to work around it). you might find better solution as you go along later.
-
-sometimes I just realize that I suddenly understood things that I could not figure out
+Sometimes I just realize that I suddenly understood things that I could not figure out
 previously even though I've tried it. This is interesting. Sometimes, I will encounter 
 problems that I thought that I can not solve it directly, I solved it indirectly and 
 after building more of this project, I realize and found ways to actually solve it directly.
