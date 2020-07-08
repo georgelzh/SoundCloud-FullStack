@@ -96,5 +96,7 @@ rest can be really helpful for you in the long run. so it's necessary. we are hu
 
 
 Stay Hungry, Stay Foolish - Steve Job
+
 Author: Zhihong Li(zhihongli@bennington.edu)
+
 Date: Jul 8th 2020
