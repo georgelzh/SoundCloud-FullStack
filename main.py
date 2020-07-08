@@ -251,15 +251,7 @@ def account():
                 return render_template("account.html")
 
 if __name__ == "__main__":
-    # for testing purpose, we gonna drop all collections before the program starts
-    # mongo.db.drop_collection("user")
-    # mongo.db.drop_collection("fs.chunks")
-    # mongo.db.drop_collection("fs.files")
-
     app.run(host="0.0.0.0", debug=True)
-
-
-
 
 
 """
@@ -356,6 +348,10 @@ in terms of returning mp3 from mongodb gridfs to the http request
 object that gridfs returns when we get the file by ObjectId (GridOut object)
 https://api.mongodb.com/python/current/api/gridfs/grid_file.html#gridfs.grid_file.GridOut
 
+Gridfs for file operation
+https://api.mongodb.com/python/current/api/gridfs/index.html
+
+
 for wrap file reference flask-pymongo send_file function
 https://github.com/dcrosta/flask-pymongo/blob/master/flask_pymongo/__init__.py
 
@@ -415,6 +411,8 @@ https://flask.palletsprojects.com/en/1.1.x/tutorial/blog/
 {% endif %}
 
 
+http hidden form option
+https://stackoverflow.com/questions/45124603/how-to-tell-which-html-form-was-submitted-to-flask
 
 
 
@@ -437,6 +435,10 @@ https://blog.csdn.net/mianbaoli xiang/article/details/90515139?utm_medium=distri
 
 
 
+# to drop all the data in the databases including files and user info
+# mongo.db.drop_collection("user")
+# mongo.db.drop_collection("fs.chunks")
+# mongo.db.drop_collection("fs.files")
 
 """
 
