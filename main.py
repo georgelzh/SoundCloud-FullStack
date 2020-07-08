@@ -36,6 +36,7 @@ mongo = PyMongo(app, uri="mongodb://localhost:27017/soundcloud")
 storage_bucket = GridFSBucket(mongo.db)
 storage = GridFS(mongo.db, "fs")
 
+
 @app.before_request
 def load_logged_in_user():
     username = session.get('username')
@@ -43,7 +44,6 @@ def load_logged_in_user():
         g.user = None
     else:
         g.user = mongo.db.users.find_one({"username": username})
-
 
 @app.after_request
 def after_request(response):
@@ -102,9 +102,7 @@ def register():
             flash(error)
             return render_template("register.html")
         else:
-            empty_tracks = {}
-            mongo.db.users.insert_one({"username": username, "password": generate_password_hash(password),\
-                                            "email": email, "tracks": empty_tracks})
+            mongo.db.users.insert_one({"username": username, "password": generate_password_hash(password), "email": email})
             success = "successful register!"
             flash(success)
             return render_template("register.html")
@@ -186,63 +184,71 @@ def upload():
             if music_file == "failed to upload" or music_file == None:
                 return music_file, 400
             
-            music_file_obj_id = mongo.save_file(filename=track_titile, 
-                                fileobj=music_file, artist = g.user['username'], user_id = g.user["_id"])
-            
-            # update user tracks in mongo
-            tracks = g.user['tracks']
-            
-            # this code below solves the problem of user uploading the same music_file
-            # insert the new song into hashtable/"tracks"
-            # if the song name has already exists in the tracks,
-            # then convert it into a list and append the ObjectId to the new list
-            if track_titile in tracks:
-                # put the ObjectId into a [] so that the same name track can be appended here
-                tracks[track_titile] = [tracks[track_titile]]
-                tracks[track_titile].append(music_file_obj_id)
+            mongo.save_file(filename=track_titile, 
+                                fileobj=music_file, artist_name = g.user['username'], artist_id = g.user["_id"])
+        flash("successfully uploaded track '{0}'".format(track_titile))
+        return redirect('/profile/{0}'.format(g.user['username']))
 
-                # update tracks data in the database
-                tracks[track_titile] = music_file_obj_id
-                mongo.db.users.find_one_and_update(
-                    {"_id": g.user['_id']},
-                    {"$set": {
-                        "tracks": tracks
-                    }},
-                    upsert = True)
-            else:
-                tracks[track_titile] = music_file_obj_id
-                mongo.db.users.find_one_and_update(
-                    {"_id": g.user['_id']},
-                    {"$set": {
-                        "tracks": tracks
-                    }})
-        return "successfully upload track '{0}' for {1}!".format(track_titile, g.user['username'])
+
+@app.route('/delete/<music_file_id>', methods=['POST'])
+@login_required
+def delete(music_file_id):
+    music_file_id = ObjectId(music_file_id)
+    if music_file_id is None or storage.exists(music_file_id) != True:
+        flash("music_file does not exist")
+        return redirect('/profile/{0}'.format(g.user['username']))
+    else:
+        music_file_info = mongo.db.fs.files.find_one({"_id": music_file_id})
+        if music_file_info['artist_id'] != g.user['_id']:
+            flash("you can not delete track that does not belong to you")
+            return redirect('/')
+        else:
+            storage.delete(music_file_id)
+            flash("successfully deleted the track '{0}'".format(music_file_info['filename']))
+            return redirect('/profile/{0}'.format(g.user['username']))
 
 
 @app.route('/profile/<string:username>')
 @app.route('/profile/<string:username>/')
-@login_required
 def show_profile(username):
-    user = mongo.db.users.find_one({"username": username})
-    if user == None:
-        return redirect('/')
-    else:
-        # retrieve all tracks from the artist
-        sound_track_list = []
-        for track_title, file_ids in user['tracks'].items():
-            # when the user owns exactly one soundtrack for a name
-            if type(file_ids) == ObjectId:
-                sound_track_list.append([track_title, file_ids])
-            # when use owns more than one soundtrack that shares the same track name
+    # retrieve all tracks from the artist
+    tracks = mongo.db.fs.files.find({"artist_name": username})
+    # display track_list via jinja
+    return render_template("profile.html", username = username, tracks = tracks)
+
+@app.route('/account', methods=['GET', 'POST'])
+@login_required
+def account():
+    if request.method == 'GET':
+        return render_template("account.html")
+    elif request.method == 'POST':
+        form = request.form['form']
+        # if change email form is submitted
+        if form == "change_email":
+            new_email = request.form['new_email']
+            pwd = request.form['pwd']
+            user = mongo.db.users.find_one({"_id": g.user['_id']})
+            if check_password_hash(user['password'], pwd) == True:
+                mongo.db.users.find_one_and_update({"username": g.user['username']},
+                            { "$set": {"email": new_email} }, upsert=True)
+                flash("successfully updated your email address!")
+                return redirect('/account')
             else:
-                for file_id in file_ids:
-                    sound_track_list.append([track_title, file_id])
-        # display track_list via jinja
-        return render_template("profile.html", username = user['username'], sound_track_list = sound_track_list)
-
-
-
-
+                flash("incorrect password, please try again")
+                return render_template("account.html")
+        # if change_pwd form is submitted
+        if form == "change_pwd":
+            old_pwd = request.form['old_pwd']
+            new_pwd = request.form['new_pwd']
+            user = mongo.db.users.find_one({"_id": g.user['_id']})
+            if check_password_hash(user['password'], old_pwd) == True:
+                mongo.db.users.find_one_and_update({"username": g.user['username']},
+                            { "$set": {"password": generate_password_hash(new_pwd)} }, upsert=True)
+                flash("successfully updated your password!")
+                return redirect('/account')
+            else:
+                flash("incorrect password, please try again")
+                return render_template("account.html")
 
 if __name__ == "__main__":
     # for testing purpose, we gonna drop all collections before the program starts
@@ -253,6 +259,17 @@ if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
 
 
+
+
+
+"""
+security can be improved. 
+For eg: session and g.user should only store user['_id'] and user['username'] nothing else
+print(g.user)
+{'_id': ObjectId('5f052dddefc9b24cb4e2b85a'), 'username': 'george', 
+'password': 'pbkdf2:sha256:150000$vemmVBEU$de9aa3ce6bf464af89b064843729ad2356ff6532c8b37dbd6b86560e71c45106', 
+'email': 'fuckyou@bennington.edu', 'tracks': {}}
+"""
 
 
 """
@@ -387,6 +404,19 @@ g variable vs session
 https://www.reddit.com/r/learnpython/comments/2x4754/flask_should_i_use_the_g_variable_system_of/
 
 
+Creating a User Login System Using Python, Flask and MongoDB
+https://www.youtube.com/watch?v=vVx1737auSE&list=WL&index=76&t=110s
+
+blog update endpoint and template
+https://flask.palletsprojects.com/en/1.1.x/tutorial/blog/
+
+{% if g.user['id'] == post['author_id'] %}
+    <a class="action" href="{{ url_for('blog.update', id=post['id']) }}">Edit</a>
+{% endif %}
+
+
+
+
 
 Other people's Application:
 Open source, web-based music player for the cloud.
@@ -407,10 +437,6 @@ https://blog.csdn.net/mianbaoli xiang/article/details/90515139?utm_medium=distri
 
 
 
-
-        {% if g.user['id'] == post['author_id'] %}
-          <a class="action" href="{{ url_for('blog.update', id=post['id']) }}">Edit</a>
-        {% endif %}
 
 """
 

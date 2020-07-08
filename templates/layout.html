@@ -2,7 +2,6 @@
 <html lang="en">
 {% block header %}{% endblock %}
 <head>
-    
   <title>{% block title %}{% endblock %}</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -24,8 +23,11 @@
         </li>
         <li class="nav-item">
           <a class="nav-link" href="{{url_for('upload')}}">Upload</a>
-        </li>        <li class="nav-item">
-
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('account') }}">Account</a>
+        </li>        
+        <li class="nav-item">
           <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
         </li>
 
@@ -44,7 +46,7 @@
   </nav>
   <br>
 
-  <div class = "container-fluid top-container" style="margin-top:80px">  
+  <div class = "container-fluid" style="margin-top:80px">  
       {% with messages = get_flashed_messages() %}
       {% if messages %}
         <ul class=flashes style="margin-top: 20px;">
@@ -63,11 +65,12 @@
 
 <div class="container-fluid" >
   <footer>
-    <p style="margin-top:50px">Created by: Zhihong Li<br></p>
+    <p style="margin-top:50px">Created by: <a href="zhihongli@bennington.edu">Zhihong Li</a></p>
     <p>Copyright © 2020 Zhihong Li All Rights Reserved.</p>
-    <a href="zhihongli@bennington.edu">Email</a>
+    
   </footer>
 </div>
+{% block javascript %} {% endblock %}
 
 </body>
 </html>

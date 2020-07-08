@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+
+{% block header %}
+  {% block title %}Account{% endblock %}
+{% endblock %}
+
+{% block content %}
+
+<h2>{{g.user['username']}}</h2>
+<p>email: {{g.user['email']}}</p>
+<div class="change_email" style="border-style: dotted; padding: 1%;">
+<form method='post' action="/account" >
+  <p><strong>Change Email</strong></p>
+  <input type="hidden" name="form" value="change_email">
+  <label for="new_email">new email:</label><br>
+  <input type="email" id="email" name="new_email" value="{{g.user['email']}}" 
+            pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" required><br>
+  <label for="pwd">please enter password:</label><br>
+  <input type="password" id="pwd" name="pwd" value="" required><br>
+  <input type="submit" value="Confirm">
+</form> 
+</div>
+
+<div class="change_pwd" style="border-style: dotted; padding: 1%; margin-top:1%">
+  <form method='post' action="/account" >
+    <p><strong>Change Password</strong></p>
+    <input type="hidden" name="form" value="change_pwd">
+    <label for="new_pwd">new password:</label><br>
+    <input type="password" id="new_pwd" name="new_pwd" value="" required><br>
+    <label for="pwd">please enter old password:</label><br>
+    <input type="password" id="pwd" name="old_pwd" value="" required><br>
+    <input type="submit" value="Confirm">
+  </form> 
+  </div>
+
+{% endblock %}

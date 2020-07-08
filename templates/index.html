@@ -6,7 +6,7 @@
 
 {% block content %}
 {% if g.user %}
-<h1>Hi Stranger, Welcome to Vangel!</h1>
+<h1>Hi {{g.user['username']}}, Welcome to Vangel!</h1>
 
 {% else %}
 <h1>Hi Stranger, Welcome to Vangel!</h1>
