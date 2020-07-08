@@ -57,6 +57,7 @@ def after_request(response):
     response.headers.add('Accept-Ranges', 'bytes')
     return response
 
+
 def login_required(view):
     """
     Require Authentication in Other Views¶
@@ -167,37 +168,6 @@ def fetch_music(music_file_id, cache_for=31536000):
         return e, 404
 
 
-@app.route('/profile/<string:username>')
-@app.route('/profile/<string:username>/')
-@login_required
-def show_profile(username):
-    user = mongo.db.users.find_one({"username": username})
-    if user == None:
-        return redirect('/')
-    else:
-        # retrieve all tracks from the artist
-        sound_track_list = []
-        for track_title, file_ids in user['tracks'].items():
-            # when the user owns exactly one soundtrack for a name
-            if type(file_ids) == ObjectId:
-                sound_track_list.append([track_title, file_ids])
-            # when use owns more than one soundtrack that shares the same track name
-            else:
-                for file_id in file_ids:
-                    sound_track_list.append([track_title, file_id])
-        # display track_list via jinja
-        return render_template("profile.html", username = user['username'], sound_track_list = sound_track_list)
-
-
-# for music retrieval via the html jinja 
-# wonder if there is a way to direct the user from the html to my endpoint?
-# if yes, then this endpoint will not be needed
-@app.route('/profile/<string:username>/<string:music_file_obj_id>')
-def redirect_to_music_file(username, music_file_obj_id):
-    if username != None and music_file_obj_id != None:
-        return redirect("/music/" + music_file_obj_id)
-
-
 @app.route('/upload', methods = ['GET', 'POST'])
 @login_required
 def upload():
@@ -247,6 +217,31 @@ def upload():
                         "tracks": tracks
                     }})
         return "successfully upload track '{0}' for {1}!".format(track_titile, g.user['username'])
+
+
+@app.route('/profile/<string:username>')
+@app.route('/profile/<string:username>/')
+@login_required
+def show_profile(username):
+    user = mongo.db.users.find_one({"username": username})
+    if user == None:
+        return redirect('/')
+    else:
+        # retrieve all tracks from the artist
+        sound_track_list = []
+        for track_title, file_ids in user['tracks'].items():
+            # when the user owns exactly one soundtrack for a name
+            if type(file_ids) == ObjectId:
+                sound_track_list.append([track_title, file_ids])
+            # when use owns more than one soundtrack that shares the same track name
+            else:
+                for file_id in file_ids:
+                    sound_track_list.append([track_title, file_id])
+        # display track_list via jinja
+        return render_template("profile.html", username = user['username'], sound_track_list = sound_track_list)
+
+
+
 
 
 if __name__ == "__main__":

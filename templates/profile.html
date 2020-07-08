@@ -18,7 +18,8 @@
       <li>
         <p>{{sound_track_title}}</p>
         <audio controls>
-          <source src="{{sound_track_obj_id}}" type="audio/mpeg">
+          <source src="{{url_for('fetch_music', music_file_id=sound_track_obj_id)}}" type="audio/mpeg">
+
               Your browser does not support the audio element.
         </audio>
       </li>
@@ -26,3 +27,6 @@
   </ul>
 
 {% endblock %}
+
+
+<!-- <source src="{{sound_track_obj_id}}" type="audio/mpeg"> -->
