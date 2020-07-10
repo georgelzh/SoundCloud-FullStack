@@ -52,15 +52,12 @@ flask run --host 0.0.0.0 --port 5000
 
 
 # what's next?
-1. security for g.user(flask), remove encrypted password from g.user(cookies) could be safer
-2. UI can be a lot more beautiful for both PC and Mobiles
-3. add user profile photo for user
-4. add comment function
-5. add follow/unfollow function
-6. add search music function at index page
-7. make sure all username stored in mongo is lowercase.
-    login and registration is all converted to lowercase too.
-9. ... and a lot more other features could be built on
+1. UI can be a lot more beautiful for both PC and Mobiles
+2. add user profile photo for user
+3. add comment function
+4. add follow/unfollow function
+5. add search music function at index page
+6. ... and a lot more other features could be built on
 
 # reflection
 1. I learnt a lot from this project.

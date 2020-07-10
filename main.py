@@ -43,7 +43,9 @@ def load_logged_in_user():
     if username is None:
         g.user = None
     else:
-        g.user = mongo.db.users.find_one({"username": username})
+        user = mongo.db.users.find_one({"username": username})
+        key_to_extract = ["_id", "username"]
+        g.user = {key: user[key] for key in key_to_extract}
 
 @app.after_request
 def after_request(response):
@@ -84,7 +86,7 @@ def show_index():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username = request.form['username']
+        username = request.form['username'].lower()
         password = request.form['password']
         confirm_password = request.form['password_confirm']
         email = request.form['email']
@@ -113,8 +115,8 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']        
+        username = request.form['username'].lower()
+        password = request.form['password']
         user = mongo.db.users.find_one({"username": username})
         if user is None:
             error = "user does not exists"
@@ -211,6 +213,10 @@ def delete(music_file_id):
 @app.route('/profile/<string:username>')
 @app.route('/profile/<string:username>/')
 def show_profile(username):
+    username = username.lower()
+    user = mongo.db.users.find_one({"username": username})
+    if user == None:
+        return redirect('/')
     # retrieve all tracks from the artist
     tracks = mongo.db.fs.files.find({"artist_name": username})
     # display track_list via jinja
@@ -434,6 +440,8 @@ html music player
 https://blog.csdn.net/mianbaoli xiang/article/details/90515139?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-2.nonecase&depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-2.nonecase
 
 
+How to take a subset of a dictionary in Python
+https://kite.com/python/answers/how-to-take-a-subset-of-a-dictionary-in-python
 
 # to drop all the data in the databases including files and user info
 # mongo.db.drop_collection("user")
