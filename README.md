@@ -4,10 +4,10 @@ This project is a Fullstack project. I intend to learn the full cycle
 development of fullstack enginnering. At the same time, sharp my 
 python, flask, Rest API, Mongodb skills. 
 
-“Learn_partial_content_static_file_stream.py”,  “Music folder”, “template/test.html” & “template/test2.html” are for particle content local(static) file stream. I played with static streaming in the beginning. 
+“Learn_partial_content_static_file_stream.py”,  “Music folder”, “template/test.html” & “template/test2.html” are for particle content local(static) file streaming. I played with static streaming in the beginning. 
 “Gridfs_usage_playground.py” is for me to learn mongoDB - gridfs. 
 
-Files and folders mentioned above are not required for the project to run. But they can be helpful if you’d like to learn about static file streaming. 
+Files and folders mentioned above are not required for the project to run. But they can be helpful if you’d like to learn about static file streaming and gridfs.
 
 
 # what is covered in this project?
