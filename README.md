@@ -95,7 +95,7 @@ move on.
 
 4. don't give up. Great things takes time to come to fruition. Give it time and be patient.
 move forward step by step. It's okay to take rest and breaks. Don't be too harsh on yourself.
-rest can be really helpful for you in the long run. so it's necessary. we are human indeed.
+rest can be really helpful for you in the long run. so it's necessary. we are all human.
 
 
 Stay Hungry, Stay Foolish - Steve Job
