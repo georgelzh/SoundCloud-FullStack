@@ -22,8 +22,6 @@ from flask import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.wsgi import wrap_file
-
-# modules - CRUD mongodb operation for user
 from werkzeug.exceptions import abort
 
 
@@ -146,7 +144,6 @@ def logout():
 
 
 @app.route('/music/<music_file_id>')
-# last TODO: need to protect this folder make sure there's login needed
 def fetch_music(music_file_id, cache_for=31536000):
     try:
         # package the response
@@ -159,10 +156,8 @@ def fetch_music(music_file_id, cache_for=31536000):
         resp.set_etag(audio_file_obj.md5)
         resp.cache_control.max_age = cache_for  # time the client is able to cache 
         resp.cache_control.public = True
-        resp.make_conditional(request) # what does this line do?
-        #print(request) # <Request 'http://127.0.0.1:5000/music/sd' [GET]>
+        resp.make_conditional(request)
         return resp
-        # return mongo.send_file("better_now.mp3")
     except Exception as e:
         # return 404 if music not found
         return e, 404
@@ -178,7 +173,6 @@ def upload():
         music_file = "failed to upload"
 
         track_titile = request.form.get("track title")
-        # print(request.files)    #ImmutableMultiDict([('music_file', <FileStorage: 'better_now.mp3' ('audio/mpeg')>)])
         
         if "music_file" in request.files:
             # upload
@@ -266,7 +260,7 @@ For eg: session and g.user should only store user['_id'] and user['username'] no
 print(g.user)
 {'_id': ObjectId('5f052dddefc9b24cb4e2b85a'), 'username': 'george', 
 'password': 'pbkdf2:sha256:150000$vemmVBEU$de9aa3ce6bf464af89b064843729ad2356ff6532c8b37dbd6b86560e71c45106', 
-'email': 'fuckyou@bennington.edu', 'tracks': {}}
+'email': 'hello@bennington.edu', 'tracks': {}}
 """
 
 
