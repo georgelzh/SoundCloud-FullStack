@@ -23,8 +23,8 @@ http & cookies & responses
 This project has function such as
 1. index page
 2. login/logout - with sessions and g.user(flask) / cookies | login logout
-3. view your own and others' profiles and listen to soundtracks they uploaded | profile
-4. upload & delete music track if the track belongs to you | upload
+3. view your own and others' profiles and listen to soundtracks they uploaded | profile, audio streaming
+4. upload & delete music track if the track belongs to you | upload delete
 5. change email addr and password page | account page
 
 
