@@ -1,7 +1,7 @@
 # Intro - SoundCloud-FullStack
 Inspired by music streaming website such as soundcloud and spotify.
 This project is a Fullstack project. I intend to learn the full cycle
-development of fullstack enginnering. At the same time, sharp my 
+development of fullstack enginnering. At the same time, sharpen my 
 python, flask, Rest API, Mongodb skills. 
 
 “Learn_partial_content_static_file_stream.py”,  “Music folder”, “template/test.html” & “template/test2.html” are for particle content local(static) file streaming. I played with static streaming in the beginning. 
