@@ -13,13 +13,9 @@ Files and folders mentioned above are not required for the project to run. But t
 # what is covered in this project?
 Topics related:
 front-end - Jinja & HTML/CSS
-
 back-end - python & mongodb
-
 file-storage: mongodb-gridfs
-
 back-end driver - pymongo & flask-pymongo
-
 http & cookies & responses
 
 
