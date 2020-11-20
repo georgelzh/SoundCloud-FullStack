@@ -11,42 +11,47 @@
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
 </head>
 <body>
+  <header>
+    <nav class="navbar navbar-expand-sm bg-dark navbar-dark fixed-top">
+      <a class="navbar-brand" href="#">Vangel</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarCollapse">
+        <ul class="navbar-nav mr-auto">
+            {% if g.user %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{url_for('show_index')}}">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{url_for('show_profile', username=g.user['username'])}}">Profile</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{url_for('upload')}}">Upload</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('account') }}">Account</a>
+            </li>        
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+            </li>
 
-  <nav class="navbar navbar-expand-sm bg-dark navbar-dark fixed-top">
-    <ul class="navbar-nav">
-        {% if g.user %}
-        <li class="nav-item">
-            <a class="nav-link" href="{{url_for('show_index')}}">HOME</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{{url_for('show_profile', username=g.user['username'])}}">Profile</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{url_for('upload')}}">Upload</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('account') }}">Account</a>
-        </li>        
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
-        </li>
+            {% else %}
+            <li class="nav-item">
+            <a class="nav-link" href="{{url_for('show_index')}}">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('register') }}">Register</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+  </header>
 
-        {% else %}
-        <li class="nav-item">
-        <a class="nav-link" href="{{url_for('show_index')}}">HOME</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('login') }}">Login</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('register') }}">Register</a>
-        </li>
-        {% endif %}
-    </ul>
-  </nav>
-  <br>
-
-  <div class = "container-fluid" style="margin-top:80px">  
+  <div class = "container text-center" style="margin-top:40px">  
       {% with messages = get_flashed_messages() %}
       {% if messages %}
         <ul class=flashes style="margin-top: 20px;">
@@ -62,12 +67,9 @@
     </div>
 
 
-
-<div class="container-fluid" >
-  <footer>
+  <footer class="container text-center">
     <p style="margin-top:50px">Created by: <a href="zhihongli@bennington.edu">Zhihong Li</a></p>
     <p>Copyright © 2020 Zhihong Li All Rights Reserved.</p>
-    
   </footer>
 </div>
 {% block javascript %} {% endblock %}

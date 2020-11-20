@@ -1,35 +1,36 @@
 {% extends "layout.html" %}
 
 {% block header %}
-  <h1>{% block title %}{{username}} - Vangle{% endblock %}</h1>
+  {% block title %}{{username}} - Vangle{% endblock %}
 {% endblock %}
 
 {% block content %}
-
+<div class="container">
+  <div class="container-fluid">
   <h1> {{username}} </h1>
   <h2> Tracks</h2>
-
+  </div>
   {% if g.user['username'] == username %}
   <a class ='action' href="{{url_for('upload')}}">Upload</a>
   {% endif %}
-
-  <ul>
+  </div>
+  <ul class="list-group">
     {% for track in tracks %}
-      <li>
-        <p>{{track['filename']}}</p>
+      <li class="list-group-item">
+        <h5>{{track['filename']}}</h5>
         {% if g.user['_id'] == track['artist_id'] %}
-        <form id="delete_track" action="{{ url_for('delete', music_file_id=track['_id'])}}" 
-          method="POST">
-          <input type="submit" value="Delete" />
-        </form>
         {% endif %}
         <audio controls>
           <source src="{{url_for('fetch_music', music_file_id=track['_id'])}}" type="audio/mpeg">
         </audio>
+        <form id="delete_track" action="{{ url_for('delete', music_file_id=track['_id'])}}" 
+          method="POST">
+          <input type="submit" value="Delete" />
+        </form>
       </li>
     {% endfor%}
   </ul>
-
+</div>
 {% endblock %}
 
 {% block javascript %} 

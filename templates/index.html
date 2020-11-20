@@ -1,18 +1,18 @@
 {% extends "layout.html" %}
 
 {% block header %}
-  {% block title %} Music Heaven - Vangle {% endblock %}
+  {% block title %} Vangel - Your Music World {% endblock %}
 {% endblock %}
 
 {% block content %}
-{% if g.user %}
-<h1>Hi {{g.user['username']}}, Welcome to Vangel!</h1>
+<div class="container text-center">
+  {% if g.user %}
+  <h1>Hi {{g.user['username']}}, Welcome to Vangel!</h1>
 
-{% else %}
-<h1>Hi Stranger, Welcome to Vangel!</h1>
-{% endif %}
-
-<h3>Enjoy the music!</h3>
-<br>
-<h5>“Where words fail, music speaks.” ― Hans Christian Andersen</h5>
+  {% else %}
+  <h1>Hi Stranger, Welcome to Vangel!</h1>
+  {% endif %}
+  <br>
+  <h5>“Where words fail, music speaks.” ― Hans Christian Andersen</h5>
+</div>
 {% endblock %}
