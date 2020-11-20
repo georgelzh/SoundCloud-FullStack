@@ -30,7 +30,7 @@ app.secret_key="dev"
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024 # 10 mb maximize size upload file
 
 # config
-mongo = PyMongo(app, uri="mongodb://localhost:27017/soundcloud")
+mongo = PyMongo(app, uri="mongodb://10.10.241.101:27017/soundcloud")
 storage_bucket = GridFSBucket(mongo.db)
 storage = GridFS(mongo.db, "fs")
 
@@ -251,7 +251,7 @@ def account():
                 return render_template("account.html")
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
+    app.run(host="0.0.0.0", debug=False)
 
 
 """
