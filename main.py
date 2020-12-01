@@ -27,13 +27,43 @@ from werkzeug.exceptions import abort
 
 app = Flask(__name__)   #static_folder="music" if needed
 app.secret_key="dev"
+
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024 # 10 mb maximize size upload file
 
+mongo = PyMongo(app, uri="mongodb://root:xx@34.72.14.239:27017/soundcloud?authSource=admin")
+
 # config
-mongo = PyMongo(app, uri="mongodb://10.10.241.101:27017/soundcloud")
+
 storage_bucket = GridFSBucket(mongo.db)
 storage = GridFS(mongo.db, "fs")
+"""mongo = PyMongo(app, uri="mongodb://root:xx@34.72.14.239:27017/")
 
+
+import pymongo
+
+myclient = pymongo.MongoClient("mongodb://root:xx@34.72.14.239:27017/")
+mongo = myclient["soundcloud"]
+users = mongo["users"]
+
+x = users.find_one()
+
+print(x)
+
+PV1rJQmVkDng
+
+mongo "mongodb://34.72.14.239" --username root
+
+
+https://stackoverflow.com/questions/37945262/authentication-failed-when-using-flask-pymongo
+app.config['MONGO_HOST'] = '34.72.14.239'
+app.config['MONGO_PORT'] = '27017'
+app.config['MONGO_DBNAME'] = 'soundcloud'
+app.config['MONGO_USERNAME'] = 'root'
+app.config['MONGO_PASSWORD'] = 'xxxx'
+app.config['MONGO_AUTH_SOURCE'] = 'admin' . # root user is typically defined in admin db
+
+
+"""
 
 @app.before_request
 def load_logged_in_user():
@@ -251,7 +281,7 @@ def account():
                 return render_template("account.html")
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", debug=False, port=8000)
+    app.run(host="0.0.0.0", debug=False, port=5000)
 
 
 """

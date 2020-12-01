@@ -23,9 +23,11 @@
         <audio controls>
           <source src="{{url_for('fetch_music', music_file_id=track['_id'])}}" type="audio/mpeg">
         </audio>
+        {% if g.user['username'] == username %}
         <form id="delete_track" action="{{ url_for('delete', music_file_id=track['_id'])}}" 
           method="POST">
           <input type="submit" value="Delete" />
+          {% endif %}
         </form>
       </li>
     {% endfor%}
