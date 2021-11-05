@@ -1,27 +1,15 @@
-FROM ubuntu:latest
+FROM python:3.7.12-alpine3.14
 MAINTAINER Zhihong Li <zhihongli@bennington.edu>
 
-RUN apt-get update && apt-get install -y \
-	curl \
-	python-dev \
-	python-setuptools \
-	python3-pip \
-	--no-install-recommends && \
-	rm -rf /var/lib/apt/lists/* && \
-	apt-get clean
-
 RUN pip3 install --upgrade pip
-RUN pip3 uninstall bson
-RUN pip3 uninstall pymongo
-RUN pip3 install flask
-RUN pip3 install flask_pymongo
-
+RUN pip3 uninstall -y bson pymongo
+RUN pip3 install flask flask_pymongo
 
 ADD . /SoundCloud-FullStack
 WORKDIR /SoundCloud-FullStack
 
 EXPOSE 5000
 
-ENV FLASK_APP=main.py
+ENTRYPOINT [ "python" ]
 
-CMD /usr/local/bin/flask run --host=0.0.0.0
+CMD ["main.py"]
