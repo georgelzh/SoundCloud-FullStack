@@ -30,40 +30,13 @@ app.secret_key="dev"
 
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024 # 10 mb maximize size upload file
 
-mongo = PyMongo(app, uri="mongodb://root:xx@34.72.14.239:27017/soundcloud?authSource=admin")
+mongo = PyMongo(app, uri="mongodb://root:root@mongo:27017/soundcloud?authSource=admin")
 
 # config
 
 storage_bucket = GridFSBucket(mongo.db)
 storage = GridFS(mongo.db, "fs")
-"""mongo = PyMongo(app, uri="mongodb://root:xx@34.72.14.239:27017/")
 
-
-import pymongo
-
-myclient = pymongo.MongoClient("mongodb://root:xx@34.72.14.239:27017/")
-mongo = myclient["soundcloud"]
-users = mongo["users"]
-
-x = users.find_one()
-
-print(x)
-
-PV1rJQmVkDng
-
-mongo "mongodb://34.72.14.239" --username root
-
-
-https://stackoverflow.com/questions/37945262/authentication-failed-when-using-flask-pymongo
-app.config['MONGO_HOST'] = '34.72.14.239'
-app.config['MONGO_PORT'] = '27017'
-app.config['MONGO_DBNAME'] = 'soundcloud'
-app.config['MONGO_USERNAME'] = 'root'
-app.config['MONGO_PASSWORD'] = 'xxxx'
-app.config['MONGO_AUTH_SOURCE'] = 'admin' . # root user is typically defined in admin db
-
-
-"""
 
 @app.before_request
 def load_logged_in_user():
@@ -281,7 +254,7 @@ def account():
                 return render_template("account.html")
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=False, port=5000)
+    app.run(host="0.0.0.0", debug=True, port=5000)
 
 
 """
@@ -293,6 +266,19 @@ print(g.user)
 'email': 'hello@bennington.edu', 'tracks': {}}
 """
 
+"""
+connect files with authentication
+
+mongo = PyMongo(app, uri="mongodb://root:xx@34.72.14.239:27017/soundcloud?authSource=admin")
+
+https://stackoverflow.com/questions/37945262/authentication-failed-when-using-flask-pymongo
+app.config['MONGO_HOST'] = '34.72.14.239'
+app.config['MONGO_PORT'] = '27017'
+app.config['MONGO_DBNAME'] = 'soundcloud'
+app.config['MONGO_USERNAME'] = 'root'
+app.config['MONGO_PASSWORD'] = 'xxxx'
+app.config['MONGO_AUTH_SOURCE'] = 'admin' . # root user is typically defined in admin db
+"""
 
 """
 reference:
