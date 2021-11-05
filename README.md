@@ -38,25 +38,12 @@ such as sharding, and replications are great.
 great opportunity to practice more of json and python. 
 
 
-## how to run?
-1. You need to have your own mongodb server hosted. 
-Then you change the configuration of the mongodb server inside main.py
-then you are ready for the next step.
+## deployment
+as long as you have docker & docker-compose installed.
+you can just run "./up.sh" to start the server. 
+Home Page: 127.0.0.1:5000  
 
-2. Go to the parent directory of "SoundCloud-FUllSTACK"
-then open linux terminal or mac terminal enter:
-
-export FLASK_APP=SoundCloud-FullSTACK\
-export FLASK_ENV=development\
-export FLASK_RUN_PORT=5000\
-export FLASK_RUN_HOST=0.0.0.0\
-flask run
-
-# or 
-export FLASK_APP = SoundCloud-FUllSTACK\
-export FLASK_ENV=development\
-flask run --host 0.0.0.0 --port 5000
-
+you can just run "./down.sh" to shutdown the server.  
 
 # what's next?
 1. UI can be a lot more beautiful for both PC and Mobiles

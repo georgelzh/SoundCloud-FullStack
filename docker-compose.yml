@@ -1,0 +1,22 @@
+version: '3.1'
+
+services:
+  backend:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/SoundCloud-FullStack
+    links:
+      - mongo
+    depends_on: 
+      - mongo
+
+  mongo:
+    image: mongo:4.0
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    volumes:
+      - /dbdata:/data/db
