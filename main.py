@@ -156,7 +156,7 @@ def fetch_music(music_file_id, cache_for=31536000):
         resp = current_app.response_class(data, mimetype=audio_file_obj.content_type , direct_passthrough=True) # flask.Response class
         resp.content_length = audio_file_obj.length
         resp.last_modified = audio_file_obj.upload_date
-        resp.set_etag(audio_file_obj.md5)
+        # resp.set_etag(audio_file_obj.md5)   # this line is now causing issue with playing mp3 on web app. maybe its out of date function.
         resp.cache_control.max_age = cache_for  # time the client is able to cache 
         resp.cache_control.public = True
         resp.make_conditional(request)
